@@ -30,7 +30,7 @@ class TreeNodePlus extends TreeNode{
 }
 
 public class StructCharDraw {
-    public static Map<Integer,String[]> branchMap = new HashMap<>();
+    private static Map<Integer,String[]> branchMap = new HashMap<>();
     private static String emptyChar = " ";
     private static String leftChar = "{";
     private static String linkChar = "~";
@@ -151,7 +151,7 @@ public class StructCharDraw {
             queue2 = temp;
         }
     }
-    public static String[] changeBranchByNum(String[] branchList,String[] numList){
+    private static String[] changeBranchByNum(String[] branchList,String[] numList){
         //正反各一次即可
         int i = 0;
         while(i < branchList.length){
@@ -181,7 +181,7 @@ public class StructCharDraw {
         }
         return branchList;
     }
-    public static String[] getPrintNumLine(String[] printList,int width){
+    private static String[] getPrintNumLine(String[] printList,int width){
         String[] result = new String[width];
         int level = (int) (Math.log(printList.length)/ Math.log(2)) + 1;
         int breakNum = width;
@@ -204,7 +204,7 @@ public class StructCharDraw {
         return result;
     }
 
-    public static String[] getPrintBranchLine(int index,int width,int height){
+    private static String[] getPrintBranchLine(int index,int width,int height){
         if(branchMap.containsKey(index)){
             return  branchMap.get(index);
         }
@@ -223,7 +223,7 @@ public class StructCharDraw {
         }
         return line;
     }
-    public static String[] paserBranchLine(int b,int c){
+    private static String[] paserBranchLine(int b,int c){
         String[] result = new String[b+c];
         for(int i = 0;i< b+c;i++){
             if(i < b){
@@ -242,7 +242,7 @@ public class StructCharDraw {
         }
         return result;
     }
-    public static int[] getABC(int index){
+    private static int[] getABC(int index){
         int[] result = new int[3];
         if(index == 2){
             result[0] = 0;
