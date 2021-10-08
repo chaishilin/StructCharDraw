@@ -1,9 +1,4 @@
-package StructCharDraw;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class TreeNode {
     int val;
@@ -35,70 +30,40 @@ class TreeNodePlus extends TreeNode{
 }
 
 public class StructCharDraw {
-    private static Map<Integer,String[]> branchMap = new HashMap<>();
-    public static String emptyChar = " ";
-    public static String leftChar = "{";
-    public static String linkChar = "~";
-    public static String rightChar = "}";
-    public static String midChar = "^";
+    public static Map<Integer,String[]> branchMap = new HashMap<>();
+    private static String emptyChar = " ";
+    private static String leftChar = "{";
+    private static String linkChar = "~";
+    private static String rightChar = "}";
+    private static String midChar = "^";
 
-    public static void drawTree(String text){
-        text = text.replace('[',' ');
-        text = text.replace(']',' ');
-        text = text.trim();
-        String[] inorder = text.split(",");
-        TreeNode root = new TreeNode();
-        try{
-            root = inorderRebuild(inorder);
-        }catch(Exception e){
-            System.out.println(e.getMessage() + "\n不是合法的二叉树!");
-            return;
-        }
+    /***
+     *
+     * @param text [1,null,2,3] 默认为中序遍历
+     */
+    public static void drawTree(String text) {
+        TreeNode root = inorderRebuild(text);
         drawTree(root);
     }
 
-    public static void drawTree(TreeNode root){
-
-        int height = treeHeight(root);
-        int printLineWidth = getPrintWidth(height);
-        List<TreeNodePlus> queue = new ArrayList<>();
-        List<TreeNodePlus> queue2 = new ArrayList<>();
-        List<String> result = new ArrayList<>();
-        queue.add(new TreeNodePlus(root,0));
-        int level = 0;
-        while(queue.size() > 0){
-            String[] printList = new String[(int) Math.pow(2,level)];
-            String[] branchList =new String[printLineWidth];
-            for(int k = 0 ; k < printList.length;k++ ){
-                printList[k] = emptyChar;
-            }
-            while (queue.size() > 0){
-                TreeNodePlus node = queue.remove(0);
-                printList[node.count] = ""+node.val;
-                if(node.left != null){
-                    queue2.add(new TreeNodePlus(node.left,node.count*2));
-                }
-                if(node.right != null){
-                    queue2.add(new TreeNodePlus(node.right,node.count*2+1));
-                }
-            }
-            level += 1;
-            String[] numList = getPrintNumLine(printList,printLineWidth);
-
-            if(printList.length > 1){
-                branchList = getPrintBranchLine(height+2-level,printLineWidth,height);
-                //根据num 修改 branch
-                branchList = changeBranchByNum(branchList,numList);
-                printObjectList(branchList);
-            }
-            printObjectList(numList);
-            List<TreeNodePlus> temp = queue;
-            queue = queue2;
-            queue2 = temp;
-        }
+    public static void drawTree(TreeNode root) {
+        levelOrderTravel(root);
     }
 
-    private static TreeNode inorderRebuild(String[] inorder){
+    private static String[] parseString(String text) {
+        text = text.replace('[', ' ');
+        text = text.replace(']', ' ');
+        text = text.trim();
+        return text.split(",");
+    }
+
+    public static TreeNode inorderRebuild(String text) {
+        String[] inorder = parseString(text);
+        TreeNode root = inorderRebuild(inorder);
+        return root;
+    }
+
+    public static TreeNode inorderRebuild(String[] inorder){
         if(inorder.length == 0){
             return null;
         }
@@ -148,7 +113,45 @@ public class StructCharDraw {
         return getPrintWidth(height-1)*2+1;
     }
 
-    private static String[] changeBranchByNum(String[] branchList,String[] numList){
+    private static void levelOrderTravel(TreeNode root){
+        int height = treeHeight(root);
+        int printLineWidth = getPrintWidth(height);
+        List<TreeNodePlus> queue = new ArrayList<>();
+        List<TreeNodePlus> queue2 = new ArrayList<>();
+        queue.add(new TreeNodePlus(root,0));
+        int level = 0;
+        while(queue.size() > 0){
+            String[] printList = new String[(int) Math.pow(2,level)];
+            String[] branchList =new String[printLineWidth];
+            for(int k = 0 ; k < printList.length;k++ ){
+                printList[k] = emptyChar;
+            }
+            while (queue.size() > 0){
+                TreeNodePlus node = queue.remove(0);
+                printList[node.count] = ""+node.val;
+                if(node.left != null){
+                    queue2.add(new TreeNodePlus(node.left,node.count*2));
+                }
+                if(node.right != null){
+                    queue2.add(new TreeNodePlus(node.right,node.count*2+1));
+                }
+            }
+            level += 1;
+            String[] numList = getPrintNumLine(printList,printLineWidth);
+
+            if(printList.length > 1){
+                branchList = getPrintBranchLine(height+2-level,printLineWidth,height);
+                //根据num 修改 branch
+                branchList = changeBranchByNum(branchList,numList);
+                printObjectList(branchList);
+            }
+            printObjectList(numList);
+            List<TreeNodePlus> temp = queue;
+            queue = queue2;
+            queue2 = temp;
+        }
+    }
+    public static String[] changeBranchByNum(String[] branchList,String[] numList){
         //正反各一次即可
         int i = 0;
         while(i < branchList.length){
@@ -178,7 +181,7 @@ public class StructCharDraw {
         }
         return branchList;
     }
-    private static String[] getPrintNumLine(String[] printList,int width){
+    public static String[] getPrintNumLine(String[] printList,int width){
         String[] result = new String[width];
         int level = (int) (Math.log(printList.length)/ Math.log(2)) + 1;
         int breakNum = width;
@@ -201,7 +204,7 @@ public class StructCharDraw {
         return result;
     }
 
-    private static String[] getPrintBranchLine(int index,int width,int height){
+    public static String[] getPrintBranchLine(int index,int width,int height){
         if(branchMap.containsKey(index)){
             return  branchMap.get(index);
         }
@@ -220,7 +223,7 @@ public class StructCharDraw {
         }
         return line;
     }
-    private static String[] paserBranchLine(int b,int c){
+    public static String[] paserBranchLine(int b,int c){
         String[] result = new String[b+c];
         for(int i = 0;i< b+c;i++){
             if(i < b){
@@ -239,7 +242,7 @@ public class StructCharDraw {
         }
         return result;
     }
-    private static int[] getABC(int index){
+    public static int[] getABC(int index){
         int[] result = new int[3];
         if(index == 2){
             result[0] = 0;
@@ -254,18 +257,16 @@ public class StructCharDraw {
         return result;
     }
 
-    private static void printObjectList(Object[] objects){
+    public static void printObjectList(Object[] objects){
         for(int k = 0; k < objects.length ; k+=1){
             System.out.print(objects[k]);
         }
         System.out.println("");
     }
+
+    /*
     public static void main(String[] args) {
-        StructCharDraw.emptyChar = " ";
-        StructCharDraw.leftChar = "{";
-        StructCharDraw.linkChar = "~";
-        StructCharDraw.rightChar = "}";
-        StructCharDraw.midChar = "+";
-        StructCharDraw.drawTree("[5,7,4,1,null,7,null,null,8,2,1,7,5,null]");
+        drawTree("[1,2,3,5,5,8,7,null,1,5,5,8,7,1,5,5,8,7,1,5,5,8,7,null,null,3,4,5,null,7,8]");
     }
+    */
 }
