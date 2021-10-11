@@ -1,5 +1,13 @@
 import java.util.*;
 
+class Node{
+    int val;
+    Node next;
+    Node(){}
+    Node(int val){
+        this.val = val;
+    }
+}
 class TreeNode {
     int val;
     TreeNode left;
@@ -35,13 +43,48 @@ public class StructCharDraw {
     private static String linkChar = "~";
     private static String rightChar = "}";
     private static String midChar = "^";
+    private static String pointChar = "=>";
+    private static Integer MaxLinkListLength = 20;//防止链表输出死循环
 
-    /***
-     *
-     * @param text [1,null,2,3] 默认为中序遍历
-     */
-    public static void drawTree(String text) {
-        TreeNode root = inorderRebuild(text);
+    public static String printLinklist(Object val){
+        String printList = "";
+        printList += leftChar;
+        printList += val;
+        printList += rightChar;
+        printList += pointChar;
+        return printList;
+    }
+
+    public static void drawLinkList(Node root){
+        String printList = "";
+        int count = 0;
+        while(root != null && count++ < MaxLinkListLength){
+            printList += printLinklist(root.val);
+            root= root.next;
+        }
+        System.out.println(printList.substring(0,printList.length()-pointChar.length()));
+    }
+
+    public static Node buildLinkList(String text){
+        return buildLinkList(parseString(text));
+    }
+
+    public static Node buildLinkList(String[] linkList){
+        Node root = new Node();
+        Node result = root;
+        for(int i = 0;i < linkList.length;i++){
+            Node temp = new Node();
+            temp.val = Integer.parseInt(linkList[i]);
+            root.next = temp;
+            root = root.next;
+        }
+        //制造死循环
+        //root.next = result.next.next;
+        return result.next;
+    }
+
+    public static void drawTreeTravelorder(String text) {
+        TreeNode root = travelorderRebuild(text);
         drawTree(root);
     }
 
@@ -49,11 +92,11 @@ public class StructCharDraw {
         levelOrderTravel(root);
     }
 
-    public static TreeNode inorderRebuild(String text) {
-        return inorderRebuild(parseString(text));
+    public static TreeNode travelorderRebuild(String text) {
+        return travelorderRebuild(parseString(text));
     }
 
-    public static TreeNode inorderRebuild(String[] inorder){
+    public static TreeNode travelorderRebuild(String[] inorder){
         //从中序遍历重建二叉树
         if(inorder.length == 0){
             return null;
@@ -276,6 +319,7 @@ public class StructCharDraw {
     }
 
     public static void main(String[] args) {
-        drawTree("[1,2,3,5,5,8,7,null,1,5,5,8,7,1,5,5,8,7,1,5,5,8,7,null,null,3,4,5,null,7,8]");
+        drawTreeTravelorder("[1,2,3,5,5,8,7,null,1,5,5,8,7,1,5,5,8,7,1,5,5,8,7,null,null,3,4,5,null,7,8,1,2,3,4,null,5,6,null,null,null,null,9]");
+        drawLinkList(buildLinkList("[1,2,3,4,5]"));
     }
 }
