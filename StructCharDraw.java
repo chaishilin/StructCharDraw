@@ -20,7 +20,7 @@ class TreeNode {
 }
 
 class TreeNodePlus extends TreeNode{
-    public int count;
+    public int count;//count记录当前节点是该层的第几个节点
     public TreeNodePlus(TreeNode node,int count){
         this.left = node.left;
         this.right = node.right;
@@ -30,7 +30,6 @@ class TreeNodePlus extends TreeNode{
 }
 
 public class StructCharDraw {
-    private static Map<Integer,String[]> branchMap = new HashMap<>();
     private static String emptyChar = " ";
     private static String leftChar = "{";
     private static String linkChar = "~";
@@ -50,20 +49,12 @@ public class StructCharDraw {
         levelOrderTravel(root);
     }
 
-    private static String[] parseString(String text) {
-        text = text.replace('[', ' ');
-        text = text.replace(']', ' ');
-        text = text.trim();
-        return text.split(",");
-    }
-
     public static TreeNode inorderRebuild(String text) {
-        String[] inorder = parseString(text);
-        TreeNode root = inorderRebuild(inorder);
-        return root;
+        return inorderRebuild(parseString(text));
     }
 
     public static TreeNode inorderRebuild(String[] inorder){
+        //从中序遍历重建二叉树
         if(inorder.length == 0){
             return null;
         }
@@ -85,7 +76,7 @@ public class StructCharDraw {
             if(i >= inorder.length) {
                 break;
             }
-            //取数组的下一个，连接temp的右边边
+            //取数组的下一个，连接temp的右边
             if (inorder[i].equals("null")) {
                 i++;//如果数组中节点为空(null),则跳过该节点
             } else {
@@ -96,37 +87,66 @@ public class StructCharDraw {
         return root;
     }
 
-    private static int treeHeight(TreeNode root) {
+    public static void printObjectList(Object[] objects){
+        for(int k = 0; k < objects.length ; k+=1){
+            System.out.print(objects[k]);
+        }
+        System.out.println("");
+    }
+
+    private static String[] parseString(String text) {
+        text = text.replace('[', ' ');
+        text = text.replace(']', ' ');
+        text = text.trim();
+        return text.split(",");
+    }
+
+    private static int getTreeHeight(TreeNode root) {
         if(root == null){
             return 0;
-        }
-        if(root.left == null && root.right == null){
+        }else if(root.left == null && root.right == null){
             return 1;
         }
-        return 1+ Math.max(treeHeight(root.left),treeHeight(root.right));
+        return 1+ Math.max(getTreeHeight(root.left),getTreeHeight(root.right));
     }
+
     private static int getPrintWidth(int height){
         int result = 1;
-        if(height == 1){
-            return result;
+        for(int i = 1;i < height;i++){
+            result = result*2+1;
         }
-        return getPrintWidth(height-1)*2+1;
+        return result;
+    }
+
+    private static int[] getABC(int index){
+        int[] result = new int[3];
+        result[0] = 0;
+        result[1] = 3;
+        result[2] = 1;
+        for(int i = 2;i < index;i++){
+            result[0] = result[0]*2+1;
+            result[1] = 2*result[0]+3;
+            result[2] = result[1] - 2;
+        }
+        return result;
     }
 
     private static void levelOrderTravel(TreeNode root){
-        int height = treeHeight(root);
+        //中序遍历
+        int height = getTreeHeight(root);
         int printLineWidth = getPrintWidth(height);
         List<TreeNodePlus> queue = new ArrayList<>();
         List<TreeNodePlus> queue2 = new ArrayList<>();
         queue.add(new TreeNodePlus(root,0));
         int level = 0;
         while(queue.size() > 0){
+            //针对当前层数生成对应宽度的printList(1、2、4、8...)
             String[] printList = new String[(int) Math.pow(2,level)];
-            String[] branchList =new String[printLineWidth];
             for(int k = 0 ; k < printList.length;k++ ){
                 printList[k] = emptyChar;
             }
             while (queue.size() > 0){
+                //常规的中序遍历
                 TreeNodePlus node = queue.remove(0);
                 printList[node.count] = ""+node.val;
                 if(node.left != null){
@@ -137,21 +157,35 @@ public class StructCharDraw {
                 }
             }
             level += 1;
-            String[] numList = getPrintNumLine(printList,printLineWidth);
-
-            if(printList.length > 1){
-                branchList = getPrintBranchLine(height+2-level,printLineWidth,height);
-                //根据num 修改 branch
-                branchList = changeBranchByNum(branchList,numList);
-                printObjectList(branchList);
-            }
-            printObjectList(numList);
             List<TreeNodePlus> temp = queue;
             queue = queue2;
             queue2 = temp;
+            printTreeLine(printList,printLineWidth,height,level);
         }
     }
+
+    /***
+     *
+     * @param printList 仅含节点的打印行
+     * @param printLineWidth 实际打印行宽度
+     * @param height 树高度
+     * @param level 当前节点高度
+     */
+    public static void printTreeLine(String[] printList,int printLineWidth,int height,int level){
+        //将仅包含数字的printList和实际宽度传入，生成实际的打印行
+        String[] numList = getPrintNumLine(printList,printLineWidth,level);
+        if(printList.length > 1){
+            //如果不是打印根节点，则需要打印树枝
+            String[] branchList = getPrintBranchLine(height+2-level,printLineWidth);
+            //根据数字层是否有数字修改树枝层
+            branchList = changeBranchByNum(branchList,numList);
+            printObjectList(branchList);
+        }
+        printObjectList(numList);
+    }
+
     private static String[] changeBranchByNum(String[] branchList,String[] numList){
+        //对于树枝层的leftChar和rightChar对应的数字层数字为null的情况，修改leftChar或rightChar为emptyChar
         //正反各一次即可
         int i = 0;
         while(i < branchList.length){
@@ -181,9 +215,9 @@ public class StructCharDraw {
         }
         return branchList;
     }
-    private static String[] getPrintNumLine(String[] printList,int width){
+
+    private static String[] getPrintNumLine(String[] printList,int width,int level){
         String[] result = new String[width];
-        int level = (int) (Math.log(printList.length)/ Math.log(2)) + 1;
         int breakNum = width;
         while(level > 1){
             breakNum /= 2;
@@ -204,10 +238,7 @@ public class StructCharDraw {
         return result;
     }
 
-    private static String[] getPrintBranchLine(int index,int width,int height){
-        if(branchMap.containsKey(index)){
-            return  branchMap.get(index);
-        }
+    private static String[] getPrintBranchLine(int index,int width){
         //a:开始的空格数，b:/--+--\的长度，c:间隔长度
         int[] abc = getABC(index);
         String[] line = new String[width];
@@ -223,6 +254,7 @@ public class StructCharDraw {
         }
         return line;
     }
+
     private static String[] paserBranchLine(int b,int c){
         String[] result = new String[b+c];
         for(int i = 0;i< b+c;i++){
@@ -242,31 +274,8 @@ public class StructCharDraw {
         }
         return result;
     }
-    private static int[] getABC(int index){
-        int[] result = new int[3];
-        if(index == 2){
-            result[0] = 0;
-            result[1] = 3;
-            result[2] = 1;
-            return result;
-        }
-        result = getABC(index-1);
-        result[0] = result[0]*2+1;
-        result[1] = 2*result[0]+3;
-        result[2] = result[1] - 2;
-        return result;
-    }
 
-    public static void printObjectList(Object[] objects){
-        for(int k = 0; k < objects.length ; k+=1){
-            System.out.print(objects[k]);
-        }
-        System.out.println("");
-    }
-
-    /*
     public static void main(String[] args) {
         drawTree("[1,2,3,5,5,8,7,null,1,5,5,8,7,1,5,5,8,7,1,5,5,8,7,null,null,3,4,5,null,7,8]");
     }
-    */
 }
